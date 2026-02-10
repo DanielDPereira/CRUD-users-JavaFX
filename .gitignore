@@ -1,0 +1,8 @@
+# Arquivos de ambiente com senhas
+**/.env
+
+# Arquivos compilados e do IntelliJ
+target/
+.idea/
+*.iml
+out/
