@@ -7,6 +7,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import java.io.IOException;
 
 public class LoginController {
 
@@ -28,12 +33,36 @@ public class LoginController {
             return;
         }
 
-        // 1. Busca o usuário no banco
         Usuario usuario = usuarioDAO.buscarPorUsuario(login);
 
-        // 2. Verifica se existe e se a senha bate
         if (usuario != null && SecurityUtil.verificarSenha(senha, usuario.getSenhaHash())) {
-            mostrarAlerta("Sucesso", "Login realizado com sucesso! Bem-vindo, " + usuario.getUsuario());
+
+            try {
+                // 1. Carregar o FXML do Dashboard
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/danieldpereira/usersystem/view/Dashboard.fxml"));
+                Parent root = loader.load();
+
+                // 2. Pegar o controlador e passar o usuário
+                DashboardController dashboardController = loader.getController();
+                dashboardController.setUsuarioLogado(usuario);
+
+                // 3. Criar a nova cena
+                Stage stage = new Stage();
+                stage.setTitle("Sistema de Usuários - Dashboard");
+                stage.setScene(new Scene(root));
+                stage.setMaximized(true); // Abrir em tela cheia se quiser
+                stage.show();
+
+                // 4. Fechar a janela de Login
+                Stage loginStage = (Stage) txtUsuario.getScene().getWindow();
+                loginStage.close();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                mostrarAlerta("Erro Crítico", "Não foi possível carregar o Dashboard.");
+            }
+            // -----------------------------------------------
+
         } else {
             mostrarAlerta("Falha no Login", "Usuário ou senha incorretos.");
         }
