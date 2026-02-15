@@ -6,7 +6,7 @@ module com.danieldpereira.usersystem {
     requires java.dotenv;
 
     opens com.danieldpereira.usersystem.controller to javafx.fxml;
-
+    opens com.danieldpereira.usersystem.model to javafx.base;
     opens com.danieldpereira.usersystem to javafx.fxml;
     exports com.danieldpereira.usersystem;
     exports com.danieldpereira.usersystem.dao;

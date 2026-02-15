@@ -7,6 +7,8 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 
 <BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.danieldpereira.usersystem.controller.DashboardController">
 
@@ -27,13 +29,29 @@
     </top>
 
     <center>
-        <VBox alignment="CENTER" spacing="20.0">
-            <Label text="Sistema de Gestão de Usuários" textFill="#888888">
+        <VBox spacing="10.0">
+            <padding>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+            </padding>
+
+            <Label text="Gerenciamento de Usuários">
                 <font>
-                    <Font size="24.0" />
+                    <Font size="18.0" />
                 </font>
             </Label>
-            <Label text="Aqui ficará a tabela de CRUD em breve..." />
+
+            <TableView fx:id="tabelaUsuarios" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colId" text="ID" prefWidth="50.0" />
+                    <TableColumn fx:id="colUsuario" text="Usuário" prefWidth="150.0" />
+                    <TableColumn fx:id="colEmail" text="Email" prefWidth="200.0" />
+                    <TableColumn fx:id="colNivel" text="Nível" prefWidth="100.0" />
+                    <TableColumn fx:id="colStatus" text="Status" prefWidth="100.0" />
+                </columns>
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                </columnResizePolicy>
+            </TableView>
         </VBox>
     </center>
 

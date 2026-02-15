@@ -9,6 +9,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UsuarioDAO {
 
@@ -82,5 +84,32 @@ public class UsuarioDAO {
                 System.err.println("❌ Erro ao cadastrar usuário: " + e.getMessage());
             }
         }
+    }
+
+    public List<Usuario> listarTodos() {
+        List<Usuario> usuarios = new ArrayList<>();
+        String sql = "SELECT * FROM usuarios";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Usuario u = new Usuario(
+                        rs.getLong("id"),
+                        rs.getString("usuario"),
+                        rs.getString("email"),
+                        rs.getString("senha_hash"),
+                        NivelAcesso.valueOf(rs.getString("nivel_acesso")),
+                        StatusConta.valueOf(rs.getString("status_conta")),
+                        rs.getTimestamp("ultimo_acesso") != null ? rs.getTimestamp("ultimo_acesso").toLocalDateTime() : null,
+                        rs.getTimestamp("data_cadastro").toLocalDateTime()
+                );
+                usuarios.add(u);
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao listar usuários: " + e.getMessage());
+        }
+        return usuarios;
     }
 }
