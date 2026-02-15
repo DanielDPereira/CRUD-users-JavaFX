@@ -10,9 +10,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
@@ -31,6 +29,10 @@ public class DashboardController {
     @FXML private TableColumn<Usuario, NivelAcesso> colNivel;
     @FXML private TableColumn<Usuario, StatusConta> colStatus;
 
+    // Botões de Ação
+    @FXML private Button btnEditar;
+    @FXML private Button btnExcluir;
+
     private Usuario usuarioLogado;
     private UsuarioDAO usuarioDAO = new UsuarioDAO();
 
@@ -39,6 +41,18 @@ public class DashboardController {
     public void initialize() {
         configurarColunas();
         carregarDados();
+
+        // Listener: Monitora a seleção na tabela
+        // Se algo for selecionado, habilita os botões. Se não, desabilita.
+        tabelaUsuarios.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            boolean linhaSelecionada = (newSelection != null);
+
+            // Verifica se os botões foram carregados antes de tentar alterar propriedades
+            if (btnEditar != null && btnExcluir != null) {
+                btnEditar.setDisable(!linhaSelecionada);
+                btnExcluir.setDisable(!linhaSelecionada);
+            }
+        });
     }
 
     private void configurarColunas() {
@@ -59,6 +73,41 @@ public class DashboardController {
     public void setUsuarioLogado(Usuario usuario) {
         this.usuarioLogado = usuario;
         lblBemVindo.setText("Bem-vindo, " + usuario.getUsuario() + " (" + usuario.getNivelAcesso() + ")");
+    }
+
+    // --- MÉTODOS DOS BOTÕES ---
+
+    @FXML
+    private void handleNovoUsuario() {
+        System.out.println("Clicou em Novo Usuário");
+        // Futuro: Abrir formulário modal (Pop-up)
+    }
+
+    @FXML
+    private void handleEditarUsuario() {
+        Usuario selecionado = tabelaUsuarios.getSelectionModel().getSelectedItem();
+        if (selecionado != null) {
+            System.out.println("Editando: " + selecionado.getUsuario());
+            // Futuro: Abrir formulário preenchido
+        }
+    }
+
+    @FXML
+    private void handleExcluirUsuario() {
+        Usuario selecionado = tabelaUsuarios.getSelectionModel().getSelectedItem();
+        if (selecionado != null) {
+
+            // Confirmação simples
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Excluir Usuário");
+            alert.setHeaderText(null);
+            alert.setContentText("Tem certeza que deseja excluir o usuário " + selecionado.getUsuario() + "?");
+
+            if (alert.showAndWait().get() == ButtonType.OK) {
+                System.out.println("Excluindo: " + selecionado.getUsuario());
+                // Futuro: Chamar DAO e atualizar tabela
+            }
+        }
     }
 
     @FXML
