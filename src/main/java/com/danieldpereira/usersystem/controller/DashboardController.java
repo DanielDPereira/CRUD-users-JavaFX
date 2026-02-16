@@ -13,6 +13,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
+import javafx.stage.Modality;
 
 import java.io.IOException;
 
@@ -79,8 +80,32 @@ public class DashboardController {
 
     @FXML
     private void handleNovoUsuario() {
-        System.out.println("Clicou em Novo Usuário");
-        // Futuro: Abrir formulário modal (Pop-up)
+        try {
+            // 1. Carregar o FXML do Formulário
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/danieldpereira/usersystem/view/FormUsuario.fxml"));
+            Parent page = loader.load();
+
+            // 2. Criar o Palco (Stage) da janela pop-up
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Novo Usuário");
+            dialogStage.initModality(Modality.WINDOW_MODAL); // Bloqueia a janela de trás
+            dialogStage.initOwner(lblBemVindo.getScene().getWindow()); // Define quem é o "pai"
+            Scene scene = new Scene(page);
+            dialogStage.setScene(scene);
+
+            // 3. Mostrar a janela e ESPERAR ela fechar
+            dialogStage.showAndWait();
+
+            // 4. Se o usuário salvou, recarregar a tabela para mostrar o novo registro
+            FormUsuarioController controller = loader.getController();
+            if (controller.isBtnSalvarClicado()) {
+                carregarDados(); // Método que já existe, recarrega do banco
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Erro ao abrir formulário: " + e.getMessage());
+        }
     }
 
     @FXML
