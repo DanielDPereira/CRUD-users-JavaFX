@@ -112,4 +112,48 @@ public class UsuarioDAO {
         }
         return usuarios;
     }
+
+    public void atualizarUsuario(Usuario usuario) {
+        String sql = "UPDATE usuarios SET usuario=?, email=?, senha_hash=?, nivel_acesso=?, status_conta=? WHERE id=?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            if (conn == null) return;
+
+            stmt.setString(1, usuario.getUsuario());
+            stmt.setString(2, usuario.getEmail());
+            stmt.setString(3, usuario.getSenhaHash()); // Já deve vir criptografada ou manter a antiga
+            stmt.setString(4, usuario.getNivelAcesso().name());
+            stmt.setString(5, usuario.getStatusConta().name());
+            stmt.setLong(6, usuario.getId());
+
+            stmt.executeUpdate();
+            System.out.println("✅ Usuário atualizado com sucesso: " + usuario.getUsuario());
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao atualizar usuário: " + e.getMessage());
+        }
+    }
+
+    public void excluirUsuario(Long id) {
+        // Opção 1: Hard Delete (apaga mesmo)
+        String sql = "DELETE FROM usuarios WHERE id=?";
+
+        // Opção 2: Soft Delete (muda status para INATIVO) - Recomendado em empresas!
+        // String sql = "UPDATE usuarios SET status_conta='INATIVO' WHERE id=?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            if (conn == null) return;
+
+            stmt.setLong(1, id);
+            stmt.executeUpdate();
+            System.out.println("✅ Usuário excluído (ID: " + id + ")");
+
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao excluir usuário: " + e.getMessage());
+        }
+    }
 }

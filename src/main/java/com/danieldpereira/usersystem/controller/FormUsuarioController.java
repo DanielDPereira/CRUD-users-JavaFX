@@ -4,11 +4,9 @@ import com.danieldpereira.usersystem.dao.UsuarioDAO;
 import com.danieldpereira.usersystem.model.NivelAcesso;
 import com.danieldpereira.usersystem.model.StatusConta;
 import com.danieldpereira.usersystem.model.Usuario;
+import com.danieldpereira.usersystem.util.SecurityUtil; // IMPORTANTE
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 
 public class FormUsuarioController {
@@ -18,33 +16,65 @@ public class FormUsuarioController {
     @FXML private PasswordField txtSenha;
     @FXML private ComboBox<NivelAcesso> cbNivel;
     @FXML private ComboBox<StatusConta> cbStatus;
+    @FXML private Label lblTitulo; // (Opcional) Para mudar texto "Cadastro" para "Edição"
 
     private UsuarioDAO usuarioDAO = new UsuarioDAO();
-    private boolean btnSalvarClicado = false; // Para saber se o usuário salvou ou cancelou
+    private Usuario usuarioEdicao = null; // Se for null, é NOVO. Se tiver objeto, é EDIÇÃO.
+    private boolean btnSalvarClicado = false;
 
     @FXML
     public void initialize() {
-        // Preenche os comboboxes com os valores dos ENUMs
         cbNivel.getItems().setAll(NivelAcesso.values());
         cbStatus.getItems().setAll(StatusConta.values());
 
-        // Seleciona valores padrão
         cbNivel.getSelectionModel().select(NivelAcesso.COMUM);
         cbStatus.getSelectionModel().select(StatusConta.ATIVO);
+    }
+
+    // Método chamado pelo Dashboard para passar os dados do usuário a ser editado
+    public void setUsuario(Usuario usuario) {
+        this.usuarioEdicao = usuario;
+
+        txtUsuario.setText(usuario.getUsuario());
+        txtEmail.setText(usuario.getEmail());
+        cbNivel.setValue(usuario.getNivelAcesso());
+        cbStatus.setValue(usuario.getStatusConta());
+
+        // Senha fica vazia. Se o usuário digitar algo, trocamos. Se deixar vazia, mantemos a antiga.
+        txtSenha.setPromptText("Deixe vazio para manter a senha");
     }
 
     @FXML
     private void handleSalvar() {
         if (validarCampos()) {
-            Usuario novoUsuario = new Usuario(
-                    txtUsuario.getText(),
-                    txtEmail.getText(),
-                    txtSenha.getText(), // Nota: O DAO vai criptografar isso
-                    cbNivel.getValue()
-            );
-            novoUsuario.setStatusConta(cbStatus.getValue());
 
-            usuarioDAO.cadastrarUsuario(novoUsuario);
+            if (usuarioEdicao == null) {
+                // --- MODO CADASTRO (Novo) ---
+                Usuario novoUsuario = new Usuario(
+                        txtUsuario.getText(),
+                        txtEmail.getText(),
+                        SecurityUtil.criptografarSenha(txtSenha.getText()), // Criptografa aqui
+                        cbNivel.getValue()
+                );
+                novoUsuario.setStatusConta(cbStatus.getValue());
+                usuarioDAO.cadastrarUsuario(novoUsuario);
+
+            } else {
+                // --- MODO EDIÇÃO (Atualizar) ---
+                usuarioEdicao.setUsuario(txtUsuario.getText());
+                usuarioEdicao.setEmail(txtEmail.getText());
+                usuarioEdicao.setNivelAcesso(cbNivel.getValue());
+                usuarioEdicao.setStatusConta(cbStatus.getValue());
+
+                // Lógica da Senha na Edição
+                if (!txtSenha.getText().isEmpty()) {
+                    // Se digitou senha nova, criptografa e salva
+                    usuarioEdicao.setSenhaHash(SecurityUtil.criptografarSenha(txtSenha.getText()));
+                }
+                // Se não digitou, mantém o hash antigo que já está no objeto usuarioEdicao
+
+                usuarioDAO.atualizarUsuario(usuarioEdicao);
+            }
 
             btnSalvarClicado = true;
             fecharJanela();
@@ -57,11 +87,9 @@ public class FormUsuarioController {
     }
 
     private void fecharJanela() {
-        Stage stage = (Stage) txtUsuario.getScene().getWindow();
-        stage.close();
+        ((Stage) txtUsuario.getScene().getWindow()).close();
     }
 
-    // Retorna true se salvou com sucesso (útil para o Dashboard saber se deve atualizar a tabela)
     public boolean isBtnSalvarClicado() {
         return btnSalvarClicado;
     }
@@ -70,12 +98,15 @@ public class FormUsuarioController {
         String erros = "";
         if (txtUsuario.getText() == null || txtUsuario.getText().isEmpty()) erros += "Usuário inválido\n";
         if (txtEmail.getText() == null || !txtEmail.getText().contains("@")) erros += "Email inválido\n";
-        if (txtSenha.getText() == null || txtSenha.getText().length() < 3) erros += "Senha muito curta\n";
+
+        // Validação de senha: Obrigatória APENAS se for NOVO cadastro
+        if (usuarioEdicao == null && (txtSenha.getText() == null || txtSenha.getText().length() < 3)) {
+            erros += "Senha deve ter no mínimo 3 caracteres\n";
+        }
 
         if (erros.length() > 0) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Erro de Validação");
-            alert.setHeaderText(null);
+            alert.setTitle("Erro");
             alert.setContentText(erros);
             alert.showAndWait();
             return false;

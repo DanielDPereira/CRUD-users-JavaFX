@@ -112,8 +112,29 @@ public class DashboardController {
     private void handleEditarUsuario() {
         Usuario selecionado = tabelaUsuarios.getSelectionModel().getSelectedItem();
         if (selecionado != null) {
-            System.out.println("Editando: " + selecionado.getUsuario());
-            // Futuro: Abrir formulário preenchido
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/danieldpereira/usersystem/view/FormUsuario.fxml"));
+                Parent page = loader.load();
+
+                // Pega o controlador e passa o usuário selecionado
+                FormUsuarioController controller = loader.getController();
+                controller.setUsuario(selecionado); // <--- AQUI ESTÁ A MÁGICA
+
+                Stage dialogStage = new Stage();
+                dialogStage.setTitle("Editar Usuário");
+                dialogStage.initModality(Modality.WINDOW_MODAL);
+                dialogStage.initOwner(lblBemVindo.getScene().getWindow());
+                dialogStage.setScene(new Scene(page));
+
+                dialogStage.showAndWait();
+
+                if (controller.isBtnSalvarClicado()) {
+                    carregarDados(); // Atualiza a tabela com os dados novos
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -122,15 +143,17 @@ public class DashboardController {
         Usuario selecionado = tabelaUsuarios.getSelectionModel().getSelectedItem();
         if (selecionado != null) {
 
-            // Confirmação simples
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Excluir Usuário");
-            alert.setHeaderText(null);
-            alert.setContentText("Tem certeza que deseja excluir o usuário " + selecionado.getUsuario() + "?");
+            alert.setHeaderText("Atenção!");
+            alert.setContentText("Deseja realmente excluir: " + selecionado.getUsuario() + "?");
 
             if (alert.showAndWait().get() == ButtonType.OK) {
-                System.out.println("Excluindo: " + selecionado.getUsuario());
-                // Futuro: Chamar DAO e atualizar tabela
+                // Chama o DAO para excluir
+                usuarioDAO.excluirUsuario(selecionado.getId());
+
+                // Atualiza a tabela (remove a linha visualmente)
+                carregarDados();
             }
         }
     }
