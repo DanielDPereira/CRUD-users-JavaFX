@@ -1,5 +1,6 @@
 package com.danieldpereira.usersystem.controller;
 
+import com.danieldpereira.usersystem.model.NivelAcesso;
 import com.danieldpereira.usersystem.dao.LogDAO;
 import com.danieldpereira.usersystem.dao.UsuarioDAO;
 import com.danieldpereira.usersystem.model.Usuario;
@@ -40,16 +41,35 @@ public class LoginController {
             logDAO.registrarLog(usuario.getId(), "LOGIN", "Login realizado com sucesso.");
 
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/danieldpereira/usersystem/view/Dashboard.fxml"));
+                // VERIFICA O NÍVEL DE ACESSO PARA DECIDIR QUAL TELA ABRIR
+                boolean isAdmin = usuario.getNivelAcesso() == com.danieldpereira.usersystem.model.NivelAcesso.ADMIN;
+                String fxmlPath = isAdmin ? "/com/danieldpereira/usersystem/view/Dashboard.fxml"
+                        : "/com/danieldpereira/usersystem/view/UserDashboard.fxml";
+
+                FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
                 Parent root = loader.load();
 
-                DashboardController dashboardController = loader.getController();
-                dashboardController.setUsuarioLogado(usuario);
+                // Passa os dados do usuário para o controller correto
+                if (isAdmin) {
+                    DashboardController controller = loader.getController();
+                    controller.setUsuarioLogado(usuario);
+                } else {
+                    UserDashboardController controller = loader.getController();
+                    controller.setUsuarioLogado(usuario);
+                }
 
                 Stage stage = new Stage();
-                stage.setTitle("Sistema de Usuários - Dashboard");
+                stage.setTitle(isAdmin ? "Painel do Administrador" : "Painel do Usuário");
                 stage.setScene(new Scene(root));
-                stage.setMaximized(true);
+
+                // Maximizar apenas para o admin (o usuário comum fica numa janela menor e centralizada)
+                if (isAdmin) {
+                    stage.setMaximized(true);
+                } else {
+                    stage.setWidth(800);
+                    stage.setHeight(600);
+                }
+
                 stage.show();
 
                 Stage loginStage = (Stage) txtUsuario.getScene().getWindow();
@@ -57,7 +77,7 @@ public class LoginController {
 
             } catch (IOException e) {
                 e.printStackTrace();
-                mostrarAlerta("Erro Crítico", "Não foi possível carregar o Dashboard.");
+                mostrarAlerta("Erro Crítico", "Não foi possível carregar o sistema.");
             }
 
         } else {

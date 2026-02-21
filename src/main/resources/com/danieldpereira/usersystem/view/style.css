@@ -1,0 +1,39 @@
+/* Fundo da tela */
+.root-pane {
+    -fx-background-color: #f0f4f8;
+}
+
+/* Um "cartão" branco centralizado com sombra */
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 15;
+    -fx-padding: 50;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 15, 0, 0, 5);
+}
+
+/* Título de Boas-vindas */
+.welcome-text {
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+/* Subtítulo */
+.subtitle-text {
+    -fx-font-size: 16px;
+    -fx-text-fill: #7f8c8d;
+}
+
+/* Botão de Sair com efeito visual ao passar o mouse */
+.btn-logout {
+    -fx-background-color: #e74c3c;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-padding: 10 30 10 30;
+    -fx-cursor: hand;
+}
+
+.btn-logout:hover {
+    -fx-background-color: #c0392b;
+}

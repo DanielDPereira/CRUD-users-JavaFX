@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane prefHeight="600.0" prefWidth="800.0" styleClass="root-pane" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.danieldpereira.usersystem.controller.UserDashboardController">
+
+    <VBox alignment="CENTER" spacing="15.0" styleClass="card" maxWidth="450" maxHeight="300">
+
+        <Label fx:id="lblOla" text="Olá, Usuário!" styleClass="welcome-text" />
+        <Label text="Que bom ter você por aqui." styleClass="subtitle-text" />
+
+        <VBox alignment="CENTER" spacing="20.0">
+            <padding>
+                <Insets top="40.0" />
+            </padding>
+            <Label text="Em breve, suas funcionalidades estarão disponíveis aqui." textFill="#bdc3c7" />
+            <Button onAction="#handleLogout" text="Sair do Sistema" styleClass="btn-logout" />
+        </VBox>
+
+    </VBox>
+
+</StackPane>
