@@ -3,6 +3,10 @@ package com.danieldpereira.usersystem.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+import com.danieldpereira.usersystem.model.LogAtividade;
 
 public class LogDAO {
 
@@ -35,5 +39,38 @@ public class LogDAO {
         } catch (SQLException e) {
             System.err.println("❌ Erro ao registar log: " + e.getMessage());
         }
+    }
+
+    public List<LogAtividade> listarTodos() {
+        List<LogAtividade> logs = new ArrayList<>();
+        String sql = "SELECT * FROM logs_atividade ORDER BY data_hora DESC";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                LogAtividade log = new LogAtividade();
+                log.setId(rs.getLong("id"));
+
+                // Trata o ID do usuário que pode ser nulo (ex: falha de login)
+                long uId = rs.getLong("usuario_id");
+                if (!rs.wasNull()) {
+                    log.setUsuarioId(uId);
+                }
+
+                log.setAcao(rs.getString("acao"));
+                log.setDetalhes(rs.getString("detalhes"));
+
+                if (rs.getTimestamp("data_hora") != null) {
+                    log.setDataHora(rs.getTimestamp("data_hora").toLocalDateTime());
+                }
+
+                logs.add(log);
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Erro ao listar logs: " + e.getMessage());
+        }
+        return logs;
     }
 }

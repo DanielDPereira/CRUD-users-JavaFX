@@ -1,5 +1,6 @@
 package com.danieldpereira.usersystem.controller;
-
+import com.danieldpereira.usersystem.model.LogAtividade;
+import java.time.LocalDateTime;
 import com.danieldpereira.usersystem.dao.UsuarioDAO;
 import com.danieldpereira.usersystem.model.NivelAcesso;
 import com.danieldpereira.usersystem.model.StatusConta;
@@ -30,6 +31,16 @@ public class DashboardController {
     @FXML private TableColumn<Usuario, NivelAcesso> colNivel;
     @FXML private TableColumn<Usuario, StatusConta> colStatus;
 
+    // Componentes da Aba de Auditoria
+    @FXML private TabPane tabPane;
+    @FXML private Tab tabAuditoria;
+    @FXML private TableView<LogAtividade> tabelaLogs;
+    @FXML private TableColumn<LogAtividade, Long> colLogId;
+    @FXML private TableColumn<LogAtividade, LocalDateTime> colLogData;
+    @FXML private TableColumn<LogAtividade, Long> colLogUsuarioId;
+    @FXML private TableColumn<LogAtividade, String> colLogAcao;
+    @FXML private TableColumn<LogAtividade, String> colLogDetalhes;
+
     // Botões de Ação
     @FXML private Button btnEditar;
     @FXML private Button btnExcluir;
@@ -58,23 +69,40 @@ public class DashboardController {
     }
 
     private void configurarColunas() {
-        // Diz para cada coluna qual atributo da classe Usuario ela deve mostrar
+        // Colunas da aba Usuários
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colUsuario.setCellValueFactory(new PropertyValueFactory<>("usuario"));
         colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
         colNivel.setCellValueFactory(new PropertyValueFactory<>("nivelAcesso"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("statusConta"));
+
+        // Colunas da aba Logs
+        colLogId.setCellValueFactory(new PropertyValueFactory<>("id"));
+        colLogData.setCellValueFactory(new PropertyValueFactory<>("dataHora"));
+        colLogUsuarioId.setCellValueFactory(new PropertyValueFactory<>("usuarioId"));
+        colLogAcao.setCellValueFactory(new PropertyValueFactory<>("acao"));
+        colLogDetalhes.setCellValueFactory(new PropertyValueFactory<>("detalhes"));
     }
 
     private void carregarDados() {
-        // Busca do banco e converte para uma lista que o JavaFX entende (ObservableList)
-        ObservableList<Usuario> dados = FXCollections.observableArrayList(usuarioDAO.listarTodos());
-        tabelaUsuarios.setItems(dados);
+        // Carrega Usuários
+        ObservableList<Usuario> dadosUsuarios = FXCollections.observableArrayList(usuarioDAO.listarTodos());
+        tabelaUsuarios.setItems(dadosUsuarios);
+
+        // Carrega Logs
+        ObservableList<LogAtividade> dadosLogs = FXCollections.observableArrayList(logDAO.listarTodos());
+        tabelaLogs.setItems(dadosLogs);
     }
 
     public void setUsuarioLogado(Usuario usuario) {
         this.usuarioLogado = usuario;
         lblBemVindo.setText("Bem-vindo, " + usuario.getUsuario() + " (" + usuario.getNivelAcesso() + ")");
+
+        // REGRA DE SEGURANÇA NA INTERFACE:
+        // Se o usuário logado NÃO for ADMIN, removemos a aba de Auditoria
+        if (usuario.getNivelAcesso() != NivelAcesso.ADMIN) {
+            tabPane.getTabs().remove(tabAuditoria);
+        }
     }
 
     // --- MÉTODOS DOS BOTÕES ---
