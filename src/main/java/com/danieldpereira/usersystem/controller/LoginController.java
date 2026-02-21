@@ -1,5 +1,6 @@
 package com.danieldpereira.usersystem.controller;
 
+import com.danieldpereira.usersystem.dao.LogDAO;
 import com.danieldpereira.usersystem.dao.UsuarioDAO;
 import com.danieldpereira.usersystem.model.Usuario;
 import com.danieldpereira.usersystem.util.SecurityUtil;
@@ -15,13 +16,11 @@ import java.io.IOException;
 
 public class LoginController {
 
-    @FXML
-    private TextField txtUsuario;
-
-    @FXML
-    private PasswordField txtSenha;
+    @FXML private TextField txtUsuario;
+    @FXML private PasswordField txtSenha;
 
     private UsuarioDAO usuarioDAO = new UsuarioDAO();
+    private LogDAO logDAO = new LogDAO(); // <-- NOVO: Instanciamos o LogDAO
 
     @FXML
     private void handleLogin() {
@@ -37,23 +36,22 @@ public class LoginController {
 
         if (usuario != null && SecurityUtil.verificarSenha(senha, usuario.getSenhaHash())) {
 
+            // --- REGISTO DE LOG: Sucesso ---
+            logDAO.registrarLog(usuario.getId(), "LOGIN", "Login realizado com sucesso.");
+
             try {
-                // 1. Carregar o FXML do Dashboard
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/danieldpereira/usersystem/view/Dashboard.fxml"));
                 Parent root = loader.load();
 
-                // 2. Pegar o controlador e passar o usuário
                 DashboardController dashboardController = loader.getController();
                 dashboardController.setUsuarioLogado(usuario);
 
-                // 3. Criar a nova cena
                 Stage stage = new Stage();
                 stage.setTitle("Sistema de Usuários - Dashboard");
                 stage.setScene(new Scene(root));
-                stage.setMaximized(true); // Abrir em tela cheia se quiser
+                stage.setMaximized(true);
                 stage.show();
 
-                // 4. Fechar a janela de Login
                 Stage loginStage = (Stage) txtUsuario.getScene().getWindow();
                 loginStage.close();
 
@@ -61,9 +59,11 @@ public class LoginController {
                 e.printStackTrace();
                 mostrarAlerta("Erro Crítico", "Não foi possível carregar o Dashboard.");
             }
-            // -----------------------------------------------
 
         } else {
+            // --- REGISTO DE LOG: Falha ---
+            // Passamos null no ID porque não sabemos quem tentou logar (ou se o utilizador sequer existe)
+            logDAO.registrarLog(null, "FALHA_LOGIN", "Tentativa de login falhada para o utilizador: " + login);
             mostrarAlerta("Falha no Login", "Usuário ou senha incorretos.");
         }
     }

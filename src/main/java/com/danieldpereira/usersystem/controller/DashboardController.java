@@ -14,8 +14,8 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import javafx.stage.Modality;
-
 import java.io.IOException;
+import com.danieldpereira.usersystem.dao.LogDAO;
 
 public class DashboardController {
 
@@ -36,6 +36,7 @@ public class DashboardController {
 
     private Usuario usuarioLogado;
     private UsuarioDAO usuarioDAO = new UsuarioDAO();
+    private LogDAO logDAO = new LogDAO();
 
     // Método executado automaticamente quando a tela abre
     @FXML
@@ -81,30 +82,26 @@ public class DashboardController {
     @FXML
     private void handleNovoUsuario() {
         try {
-            // 1. Carregar o FXML do Formulário
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/danieldpereira/usersystem/view/FormUsuario.fxml"));
             Parent page = loader.load();
 
-            // 2. Criar o Palco (Stage) da janela pop-up
+            FormUsuarioController controller = loader.getController();
+            controller.setUsuarioLogado(usuarioLogado);
+
             Stage dialogStage = new Stage();
             dialogStage.setTitle("Novo Usuário");
-            dialogStage.initModality(Modality.WINDOW_MODAL); // Bloqueia a janela de trás
-            dialogStage.initOwner(lblBemVindo.getScene().getWindow()); // Define quem é o "pai"
-            Scene scene = new Scene(page);
-            dialogStage.setScene(scene);
+            dialogStage.initModality(Modality.WINDOW_MODAL);
+            dialogStage.initOwner(lblBemVindo.getScene().getWindow());
+            dialogStage.setScene(new Scene(page));
 
-            // 3. Mostrar a janela e ESPERAR ela fechar
             dialogStage.showAndWait();
 
-            // 4. Se o usuário salvou, recarregar a tabela para mostrar o novo registro
-            FormUsuarioController controller = loader.getController();
             if (controller.isBtnSalvarClicado()) {
-                carregarDados(); // Método que já existe, recarrega do banco
+                carregarDados();
             }
 
         } catch (IOException e) {
             e.printStackTrace();
-            System.err.println("Erro ao abrir formulário: " + e.getMessage());
         }
     }
 
@@ -116,9 +113,9 @@ public class DashboardController {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/danieldpereira/usersystem/view/FormUsuario.fxml"));
                 Parent page = loader.load();
 
-                // Pega o controlador e passa o usuário selecionado
                 FormUsuarioController controller = loader.getController();
-                controller.setUsuario(selecionado); // <--- AQUI ESTÁ A MÁGICA
+                controller.setUsuarioLogado(usuarioLogado);
+                controller.setUsuario(selecionado);
 
                 Stage dialogStage = new Stage();
                 dialogStage.setTitle("Editar Usuário");
@@ -129,7 +126,7 @@ public class DashboardController {
                 dialogStage.showAndWait();
 
                 if (controller.isBtnSalvarClicado()) {
-                    carregarDados(); // Atualiza a tabela com os dados novos
+                    carregarDados();
                 }
 
             } catch (IOException e) {
@@ -149,10 +146,11 @@ public class DashboardController {
             alert.setContentText("Deseja realmente excluir: " + selecionado.getUsuario() + "?");
 
             if (alert.showAndWait().get() == ButtonType.OK) {
-                // Chama o DAO para excluir
                 usuarioDAO.excluirUsuario(selecionado.getId());
 
-                // Atualiza a tabela (remove a linha visualmente)
+                // --- LOG: Exclusão ---
+                logDAO.registrarLog(usuarioLogado.getId(), "EXCLUIR_USUARIO", "Excluiu o utilizador: " + selecionado.getUsuario());
+
                 carregarDados();
             }
         }
@@ -161,6 +159,11 @@ public class DashboardController {
     @FXML
     private void handleLogout() {
         try {
+            // --- LOG: Logout ---
+            if (usuarioLogado != null) {
+                logDAO.registrarLog(usuarioLogado.getId(), "LOGOUT", "Encerrou a sessão.");
+            }
+
             Stage stageAtual = (Stage) lblBemVindo.getScene().getWindow();
             stageAtual.close();
 
