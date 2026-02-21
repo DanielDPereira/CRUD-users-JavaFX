@@ -68,8 +68,9 @@ public class UsuarioDAO {
             stmt.setString(1, usuario.getUsuario());
             stmt.setString(2, usuario.getEmail());
 
-            String hash = SecurityUtil.criptografarSenha(usuario.getSenhaHash());
-            stmt.setString(3, hash);
+            // CORREÇÃO AQUI: A senha já vem criptografada do FormUsuarioController!
+            // Não usamos mais o SecurityUtil.criptografarSenha() aqui.
+            stmt.setString(3, usuario.getSenhaHash());
 
             stmt.setString(4, usuario.getNivelAcesso().name());
             stmt.setString(5, usuario.getStatusConta().name());
